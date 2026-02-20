@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import generateIndex from '../../../../lib/generateIndex';
 
 function slugify(input: unknown) {
   if (!input) return "";
@@ -78,6 +79,13 @@ export async function POST(req: Request) {
     await fs.writeFile(metaPath, metaText, "utf8");
     const bookText = await bookFile.text();
     await fs.writeFile(bookPath, bookText, "utf8");
+
+    // Regenerate the precomputed index so search reads the new book.
+    try {
+      await generateIndex();
+    } catch (e) {
+      console.error('Failed to regenerate index after import:', e);
+    }
 
     // Redirect to the book page (use absolute header-compatible redirect)
     return new Response(null, {status: 303, headers: {Location: `/book/${bookSlug}`}});
