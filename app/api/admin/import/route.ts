@@ -18,6 +18,14 @@ function htmlResponse(message: string, code = 400) {
 }
 
 export async function POST(req: Request) {
+  // simple env-based protection: require ADMIN_SECRET via ?key= or x-admin-key header
+  const secret = process.env.ADMIN_SECRET || "";
+  const url = new URL(req.url);
+  const keyQuery = url.searchParams.get("key");
+  const keyHeader = req.headers.get("x-admin-key");
+  if (!secret || (keyQuery !== secret && keyHeader !== secret)) {
+    return new Response("Unauthorized", {status: 401});
+  }
   try {
     const form = await req.formData();
     const metaFile = form.get("meta") as File | null;
