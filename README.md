@@ -34,3 +34,37 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Local development and admin import
+
+1. Copy `.env.example` to create a local env file (do not commit `.env.local`):
+
+```bash
+cp .env.example .env.local
+# Edit .env.local and set a secure value for ADMIN_SECRET
+```
+
+2. Run the dev server:
+
+```bash
+npm run dev
+# then open http://localhost:3000
+```
+
+3. Importing a book (server-side filesystem import)
+
+- The import endpoint is protected; the server checks `ADMIN_SECRET` via a query param or header:
+	- Query: `?key=YOUR_SECRET`
+	- Header: `x-admin-key: YOUR_SECRET`
+
+- Use `curl` to upload a `meta.json` and `book.md` (multipart form):
+
+```bash
+curl -i -F "meta=@meta.json;type=application/json" -F "book=@book.md;type=text/markdown" "http://localhost:3000/api/admin/import?key=YOUR_SECRET"
+```
+
+- On success the API responds with a `303` redirect to the created book page (Location header).
+
+Notes:
+- `.env.example` is committed so new contributors can see required variables; do NOT commit `.env.local`.
+- In production, set `ADMIN_SECRET` via your host's environment configuration.
