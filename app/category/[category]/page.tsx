@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getBookIndex } from "../../../lib/bookIndex";
+import type { Book } from "../../../lib/types";
 
 type Props = {
   params: Promise<{
@@ -40,14 +41,14 @@ export default async function CategoryPage({ params }: Props) {
       <p className="text-gray-600 mb-6">{booksInCategory.length} {(booksInCategory.length === 1) ? 'book' : 'books'}</p>
 
       <div className="space-y-3">
-        {booksInCategory.map((b) => (
-          <div key={b.slug} className="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+        {booksInCategory.map((b: Book) => (
+          <div key={b.id} className="p-3 border border-gray-200 rounded-md flex justify-between items-center">
             <div>
               <div className="font-semibold">{b.title}</div>
               <div className="text-sm text-gray-600">{b.author}</div>
             </div>
             <div>
-              <Link href={b.href} className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md">Read</Link>
+              <Link href={`/book/${b.id}`} className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md">Read</Link>
             </div>
           </div>
         ))}

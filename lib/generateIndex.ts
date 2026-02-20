@@ -51,10 +51,6 @@ export async function generateIndex(): Promise<Book[]> {
         if (typeof publishedYear === 'number' && !Number.isNaN(publishedYear)) item.publishedYear = publishedYear;
         if (tags) item.tags = tags;
 
-        // keep backward-compatible fields for consumers (optional)
-        (item as any).slug = id;
-        (item as any).href = `/book/${id}`;
-
         results.push(item);
       } catch (e) {
         continue;

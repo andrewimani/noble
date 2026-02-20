@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getBookIndex, type BookIndexItem } from "../lib/bookIndex";
+import { getBookIndex } from "../lib/bookIndex";
+import type { Book } from "../lib/types";
 import SearchInput from "./components/SearchInput";
 
 type Props = {
@@ -12,13 +13,13 @@ export default async function HomePage({ searchParams }: Props) {
   const q = (sp?.q || "").toString();
   const index = await getBookIndex();
 
-  const categories = Array.from(new Set(index.map((b) => b.category))).sort();
+  const categories = Array.from(new Set(index.map((b: Book) => b.category))).sort();
   const counts: Record<string, number> = index.reduce((m, b) => {
     m[b.category] = (m[b.category] || 0) + 1;
     return m;
   }, {} as Record<string, number>);
 
-  let results: BookIndexItem[] = [];
+  let results: Book[] = [];
   if (q.trim()) {
     const lower = q.toLowerCase();
     results = index.filter((b) => {
@@ -26,7 +27,7 @@ export default async function HomePage({ searchParams }: Props) {
         b.title.toLowerCase().includes(lower) ||
         (b.author || '').toLowerCase().includes(lower) ||
         b.category.toLowerCase().includes(lower) ||
-        b.slug.toLowerCase().includes(lower)
+        (b as any).id.toLowerCase().includes(lower)
       );
     });
   }
@@ -45,13 +46,13 @@ export default async function HomePage({ searchParams }: Props) {
           )}
           <div className="space-y-3">
             {results.map((r) => (
-              <div key={r.href} className="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+              <div key={(r as any).id} className="p-3 border border-gray-200 rounded-md flex justify-between items-center">
                 <div>
                   <div className="font-semibold">{r.title}</div>
                   <div className="text-sm text-gray-600">{r.author} — <span className="capitalize">{r.category}</span></div>
                 </div>
                 <div>
-                  <Link href={r.href} className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md">Read</Link>
+                  <Link href={`/book/${(r as any).id}`} className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md">Read</Link>
                 </div>
               </div>
             ))}
