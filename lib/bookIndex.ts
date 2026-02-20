@@ -1,14 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import generateIndex from './generateIndex';
-
-export type BookIndexItem = {
-  title: string;
-  author?: string;
-  category: string;
-  slug: string;
-  href: string;
-};
+import { Book } from './types';
 
 const INDEX_PATH = path.join(process.cwd(), 'content', 'index.json');
 const BOOKS_DIR = path.join(process.cwd(), 'content', 'books');
@@ -77,10 +70,10 @@ async function ensureIndexOnce() {
 })();
 
 // Read the precomputed index from `content/index.json`.
-export async function getBookIndex(): Promise<BookIndexItem[]> {
+export async function getBookIndex(): Promise<Book[]> {
   try {
     const raw = await fs.readFile(INDEX_PATH, 'utf8');
-    const parsed = JSON.parse(raw) as BookIndexItem[];
+    const parsed = JSON.parse(raw) as Book[];
     if (Array.isArray(parsed)) return parsed;
     return [];
   } catch (e) {

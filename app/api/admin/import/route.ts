@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import generateIndex from '../../../../lib/generateIndex';
+import { Book } from '../../../../lib/types';
 
 function slugify(input: unknown) {
   if (!input) return "";
@@ -37,21 +38,40 @@ export async function POST(req: Request) {
     }
 
     const metaText = await metaFile.text();
-    let meta;
+    let rawMeta: any;
     try {
-      meta = JSON.parse(metaText);
+      rawMeta = JSON.parse(metaText);
     } catch (err) {
       return htmlResponse("meta.json is not valid JSON.");
     }
 
-    const {title, author, category, slug} = meta || {};
-    if (!title || !author || !category || !slug) {
-      return htmlResponse("meta.json must include title, author, category, and slug fields.");
+    // Normalize and validate against `Book` shape.
+    const maybeId = rawMeta.id || rawMeta.slug || rawMeta.name;
+    const idRaw = String(maybeId || '').trim();
+    const id = slugify(idRaw) || '';
+    const title = rawMeta.title ? String(rawMeta.title).trim() : '';
+    const author = rawMeta.author ? String(rawMeta.author).trim() : '';
+    const category = rawMeta.category ? String(rawMeta.category).trim() : '';
+    if (!id || !title || !author || !category) {
+      return htmlResponse("meta.json must include id (or slug), title, author, and category fields.");
+    }
+
+    // Optional fields
+    const description = rawMeta.description ? String(rawMeta.description) : undefined;
+    let publishedYear: number | undefined = undefined;
+    if (rawMeta.publishedYear !== undefined && rawMeta.publishedYear !== null) {
+      const n = Number(rawMeta.publishedYear);
+      if (Number.isNaN(n)) return htmlResponse("publishedYear must be a number if provided.");
+      publishedYear = n;
+    }
+    let tags: string[] | undefined = undefined;
+    if (rawMeta.tags !== undefined && rawMeta.tags !== null) {
+      if (!Array.isArray(rawMeta.tags)) return htmlResponse("tags must be an array of strings if provided.");
+      tags = rawMeta.tags.map((t: any) => String(t));
     }
 
     const categorySlug = slugify(category);
-    const bookSlug = String(slug).trim();
-    if (!bookSlug) return htmlResponse("Invalid slug in meta.json.");
+    const bookSlug = id;
 
     const baseDir = path.join(process.cwd(), "content", "books", categorySlug);
     const bookDir = path.join(baseDir, bookSlug);
@@ -72,11 +92,23 @@ export async function POST(req: Request) {
     // Create book directory
     await fs.mkdir(bookDir, {recursive: true});
 
-    // Save files
+    // Save normalized meta.json and book.md
     const metaPath = path.join(bookDir, "meta.json");
     const bookPath = path.join(bookDir, "book.md");
 
-    await fs.writeFile(metaPath, metaText, "utf8");
+    const normalizedMeta: Book & { slug?: string } = {
+      id: bookSlug,
+      title,
+      author,
+      category,
+    };
+    if (description) normalizedMeta.description = description;
+    if (publishedYear !== undefined) normalizedMeta.publishedYear = publishedYear;
+    if (tags) normalizedMeta.tags = tags;
+    // keep slug for older compatibility
+    (normalizedMeta as any).slug = bookSlug;
+
+    await fs.writeFile(metaPath, JSON.stringify(normalizedMeta, null, 2), "utf8");
     const bookText = await bookFile.text();
     await fs.writeFile(bookPath, bookText, "utf8");
 

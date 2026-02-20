@@ -1,15 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { Book } from './types';
 
-export type BookIndexItem = {
-  title: string;
-  author?: string;
-  category: string;
-  slug: string;
-  href: string;
-};
-
-export async function generateIndex(): Promise<BookIndexItem[]> {
+export async function generateIndex(): Promise<Book[]> {
   const booksDir = path.join(process.cwd(), 'content', 'books');
   const outPath = path.join(process.cwd(), 'content', 'index.json');
 
@@ -23,7 +16,7 @@ export async function generateIndex(): Promise<BookIndexItem[]> {
     return [];
   }
 
-  const results: BookIndexItem[] = [];
+  const results: Book[] = [];
 
   for (const category of categories) {
     const categoryPath = path.join(booksDir, category);
@@ -41,15 +34,27 @@ export async function generateIndex(): Promise<BookIndexItem[]> {
       try {
         const raw = await fs.readFile(metaPath, 'utf8');
         const meta = JSON.parse(raw);
-        const title = meta.title || slug;
-        const author = meta.author || '';
-        const item: BookIndexItem = {
+        const id = (meta.id || meta.slug || slug || '') as string;
+        const title = String(meta.title || slug || id);
+        const author = String(meta.author || '');
+        const description = meta.description ? String(meta.description) : undefined;
+        const publishedYear = typeof meta.publishedYear === 'number' ? meta.publishedYear : (meta.publishedYear ? Number(meta.publishedYear) : undefined);
+        const tags = Array.isArray(meta.tags) ? meta.tags.map(String) : undefined;
+
+        const item: Book = {
+          id,
           title,
           author,
           category: category,
-          slug: meta.slug || slug,
-          href: `/book/${meta.slug || slug}`,
         };
+        if (description) item.description = description;
+        if (typeof publishedYear === 'number' && !Number.isNaN(publishedYear)) item.publishedYear = publishedYear;
+        if (tags) item.tags = tags;
+
+        // keep backward-compatible fields for consumers (optional)
+        (item as any).slug = id;
+        (item as any).href = `/book/${id}`;
+
         results.push(item);
       } catch (e) {
         continue;
