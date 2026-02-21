@@ -1,0 +1,13 @@
+{
+  "id": "epictetus-enchiridion",
+  "title": "Enchiridion",
+  "author": "Epictetus",
+  "category": "philosophy",
+  "description": "A short manual of Stoic ethical advice.",
+  "publishedYear": 125,
+  "tags": [
+    "stoicism",
+    "philosophy"
+  ],
+  "slug": "epictetus-enchiridion"
+}

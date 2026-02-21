@@ -2,6 +2,9 @@ import fs from "fs/promises";
 import path from "path";
 import generateIndex from '../../../../lib/generateIndex';
 import { Book } from '../../../../lib/types';
+import prisma from '../../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../../../lib/auth';
 
 function slugify(input: unknown) {
   if (!input) return "";
@@ -20,12 +23,28 @@ function htmlResponse(message: string, code = 400) {
 }
 
 export async function POST(req: Request) {
-  // simple env-based protection: require ADMIN_SECRET via ?key= or x-admin-key header
+  // protect by ADMIN_SECRET OR signed-in admin user
   const secret = process.env.ADMIN_SECRET || "";
   const url = new URL(req.url);
   const keyQuery = url.searchParams.get("key");
   const keyHeader = req.headers.get("x-admin-key");
-  if (!secret || (keyQuery !== secret && keyHeader !== secret)) {
+
+  let authorized = false;
+  if (secret && (keyQuery === secret || keyHeader === secret)) authorized = true;
+
+  if (!authorized) {
+    try {
+      const session = await getServerSession(authOptions as any);
+      const allowedAdmins = ["andrewimani"];
+      if (session && session.user && session.user.name && allowedAdmins.includes(String(session.user.name))) {
+        authorized = true;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (!authorized) {
     return new Response("Unauthorized", {status: 401});
   }
   try {
@@ -111,6 +130,17 @@ export async function POST(req: Request) {
     await fs.writeFile(metaPath, JSON.stringify(normalizedMeta, null, 2), "utf8");
     const bookText = await bookFile.text();
     await fs.writeFile(bookPath, bookText, "utf8");
+
+    // Create or update DB record for the book
+    try {
+      await prisma.book.upsert({
+        where: { id: bookSlug },
+        update: { title, author, category, slug: bookSlug, source: 'admin-import' },
+        create: { id: bookSlug, title, author, category, slug: bookSlug, source: 'admin-import' },
+      });
+    } catch (e) {
+      console.error('Failed to upsert book into DB:', e);
+    }
 
     // Regenerate the precomputed index so search reads the new book.
     try {
