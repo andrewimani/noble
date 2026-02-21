@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { marked } from "marked";
+import BookmarkButton from "../../components/BookmarkButton";
 
 type Props = {
   params: Promise<{
@@ -26,9 +27,10 @@ export default async function BookPage({ params }: Props) {
     }
   }
 
-  const filePath = path.join(bookDir, "book.md");
+  const mdPath = path.join(bookDir, "book.md");
+  const txtPath = path.join(bookDir, "book.txt");
 
-  if (!bookDir || !fs.existsSync(filePath)) {
+  if (!bookDir || (!fs.existsSync(mdPath) && !fs.existsSync(txtPath))) {
     return (
       <main className="p-8">
         <h1>Book not found</h1>
@@ -36,10 +38,33 @@ export default async function BookPage({ params }: Props) {
       </main>
     );
   }
+  let contentHtml = '';
+  let rawText = '';
+  if (fs.existsSync(mdPath)) {
+    const fileContent = fs.readFileSync(mdPath, "utf8");
+    const { content } = matter(fileContent);
+    contentHtml = marked.parse(content);
+    rawText = content;
+  } else {
+    // fallback to plain text
+    rawText = fs.readFileSync(txtPath, 'utf8');
+    // convert simple plaintext to paragraphs
+    contentHtml = rawText
+      .split(/\n\r?\n/)
+      .map(p => `<p>${String(p).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>')}</p>`)
+      .join('\n');
+  }
 
-  const fileContent = fs.readFileSync(filePath, "utf8");
-  const { content } = matter(fileContent);
-  const contentHtml = marked.parse(content);
+  const title = (() => {
+    try {
+      const metaPath = path.join(bookDir, 'meta.json');
+      if (fs.existsSync(metaPath)) {
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        return meta.title || id;
+      }
+    } catch (e) {}
+    return id;
+  })();
 
   return (
     <main>
@@ -50,17 +75,12 @@ export default async function BookPage({ params }: Props) {
           <span className="mx-2">/</span>
           <a href={`/category/${path.basename(path.dirname(bookDir))}`} className="text-blue-600 hover:underline capitalize">{path.basename(path.dirname(bookDir))}</a>
           <span className="mx-2">/</span>
-          <span className="font-semibold">{(() => {
-            try {
-              const metaPath = path.join(bookDir, 'meta.json');
-              if (fs.existsSync(metaPath)) {
-                const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-                return meta.title || id;
-              }
-            } catch (e) {}
-            return id;
-          })()}</span>
+          <span className="font-semibold">{title}</span>
         </nav>
+
+        <div className="mb-4">
+          <BookmarkButton bookId={id} textLength={rawText.length} />
+        </div>
 
         <div className="reader" dangerouslySetInnerHTML={{ __html: contentHtml }} />
       </div>

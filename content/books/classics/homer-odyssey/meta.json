@@ -1,0 +1,13 @@
+{
+  "id": "homer-odyssey",
+  "title": "The Odyssey",
+  "author": "Homer",
+  "category": "classics",
+  "description": "Epic poem attributed to Homer.",
+  "publishedYear": -800,
+  "tags": [
+    "epic",
+    "poetry"
+  ],
+  "slug": "homer-odyssey"
+}
