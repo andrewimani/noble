@@ -1,0 +1,13 @@
+{
+  "id": "descartes-meditations",
+  "title": "Meditations on First Philosophy",
+  "author": "René Descartes",
+  "category": "philosophy",
+  "description": "A foundational work of modern philosophy.",
+  "publishedYear": 1641,
+  "tags": [
+    "philosophy",
+    "cartesian"
+  ],
+  "slug": "descartes-meditations"
+}

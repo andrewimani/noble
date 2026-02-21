@@ -1,0 +1,26 @@
+name: Generate and validate index
+
+on:
+  pull_request:
+
+jobs:
+  index-validate:
+    name: Generate + Validate Index
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate index
+        run: node scripts/generateIndex.js
+
+      - name: Validate index
+        run: node scripts/validateIndex.js

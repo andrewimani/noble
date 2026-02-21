@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+Rebranded to Arcanon — a minimal local reader and public-domain book manager.
+
 ## Getting Started
 
 First, run the development server:
@@ -68,3 +70,34 @@ curl -i -F "meta=@meta.json;type=application/json" -F "book=@book.md;type=text/m
 Notes:
 - `.env.example` is committed so new contributors can see required variables; do NOT commit `.env.local`.
 - In production, set `ADMIN_SECRET` via your host's environment configuration.
+
+How to upload books (admin)
+
+1. Sign in with GitHub on the site as an admin (configured admins: `andrewimani`).
+2. Visit `/admin/upload` and use the upload form. You can upload a `meta.json` plus either a `book.md` or `book.txt`.
+
+API for agents
+
+- Search:
+
+```
+curl 'http://localhost:3000/api/public/search?q=pride'
+```
+
+- Book metadata:
+
+```
+curl 'http://localhost:3000/api/public/book/<id>/metadata'
+```
+
+- Book text slice:
+
+```
+curl 'http://localhost:3000/api/public/book/<id>/text?start=0&length=2000'
+```
+
+Note: This API is intentionally minimal and is designed for AI agent consumption (stable JSON, text slices). It is suitable for local/dev use; do not expose broadly without adding stronger authentication and rate limiting in production.
+
+Rate limiting
+
+- The public API has a lightweight per-IP rate limiter applied: 60 requests per minute per IP.

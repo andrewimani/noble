@@ -1,0 +1,13 @@
+{
+  "id": "austen-pride-and-prejudice",
+  "title": "Pride and Prejudice",
+  "author": "Jane Austen",
+  "category": "classics",
+  "description": "A novel of manners.",
+  "publishedYear": 1813,
+  "tags": [
+    "romance",
+    "novel"
+  ],
+  "slug": "austen-pride-and-prejudice"
+}

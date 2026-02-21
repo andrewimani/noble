@@ -1,0 +1,56 @@
+[
+  {
+    "id": "austen-pride-and-prejudice",
+    "title": "Pride and Prejudice",
+    "author": "Jane Austen",
+    "category": "classics",
+    "description": "A novel of manners.",
+    "publishedYear": 1813,
+    "tags": [
+      "romance",
+      "novel"
+    ]
+  },
+  {
+    "id": "homer-odyssey",
+    "title": "The Odyssey",
+    "author": "Homer",
+    "category": "classics",
+    "description": "Epic poem attributed to Homer.",
+    "publishedYear": -800,
+    "tags": [
+      "epic",
+      "poetry"
+    ]
+  },
+  {
+    "id": "descartes-meditations",
+    "title": "Meditations on First Philosophy",
+    "author": "René Descartes",
+    "category": "philosophy",
+    "description": "A foundational work of modern philosophy.",
+    "publishedYear": 1641,
+    "tags": [
+      "philosophy",
+      "cartesian"
+    ]
+  },
+  {
+    "id": "epictetus-enchiridion",
+    "title": "Enchiridion",
+    "author": "Epictetus",
+    "category": "philosophy",
+    "description": "A short manual of Stoic ethical advice.",
+    "publishedYear": 125,
+    "tags": [
+      "stoicism",
+      "philosophy"
+    ]
+  },
+  {
+    "id": "plato-republic",
+    "title": "The Republic",
+    "author": "Plato",
+    "category": "philosophy"
+  }
+]
